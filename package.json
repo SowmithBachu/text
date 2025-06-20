@@ -1,5 +1,5 @@
 {
-  "name": "image-text-editor-saas",
+  "name": "textoverlayed",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@clerk/nextjs": "^4.29.0",
+    "@clerk/nextjs": "^6.22.0",
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
     "@stripe/stripe-js": "^2.1.0",
@@ -20,14 +20,15 @@
     "axios": "^1.6.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "critters": "^0.0.23",
     "date-fns": "^2.30.0",
     "fabric": "^5.3.0",
     "lucide-react": "^0.292.0",
-    "next": "14.0.0",
+    "next": "^15.3.4",
     "postcss": "^8.4.31",
-    "react": "^18.2.0",
+    "react": "^19.1.0",
     "react-colorful": "^5.6.1",
-    "react-dom": "^18.2.0",
+    "react-dom": "^19.1.0",
     "react-dropzone": "^14.2.3",
     "react-hot-toast": "^2.4.1",
     "sharp": "^0.32.6",

@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
   images: {
     domains: ['localhost', 'your-s3-bucket.amazonaws.com'],
     formats: ['image/webp', 'image/avif'],
@@ -12,4 +9,4 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig 
+module.exports = nextConfig

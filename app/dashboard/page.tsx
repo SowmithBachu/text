@@ -13,25 +13,26 @@ import {
 import { ImageUploader } from '@/components/ImageUploader';
 import { ImageGallery } from '@/components/ImageGallery';
 import { Sidebar } from '@/components/Sidebar';
+import ThemeToggle from '@/components/ThemeToggle';
 import { useEditorStore } from '@/store/editorStore';
 import { Image, TextOverlay } from '@/types';
 import toast from 'react-hot-toast';
 import * as bodyPix from '@tensorflow-models/body-pix';
 import '@tensorflow/tfjs-backend-cpu';
 
+type FontWeight = 
+  | 'normal' | 'bold' | 'light'
+  | '100' | '200' | '300' | '400' | '500'
+  | '600' | '700' | '800' | '900';
 const FONT_FAMILIES = [
-  'Arial',
-  'Helvetica',
-  'Times New Roman',
-  'Georgia',
-  'Verdana',
-  'Courier New',
-  'Impact',
-  'Comic Sans MS',
+  'Arial', 'Helvetica', 'Times New Roman', 'Georgia', 'Verdana',
+  'Courier New', 'Impact', 'Comic Sans MS',
 ];
 
-const FONT_WEIGHTS = [
-  '100', '200', '300', '400', '500', '600', '700', '800', '900', 'normal', 'bold', 'bolder', 'lighter',
+const FONT_WEIGHTS: FontWeight[] = [
+  'normal', 'bold', 'light',
+  '100', '200', '300', '400', '500',
+  '600', '700', '800', '900',
 ];
 
 export default function DashboardPage() {
@@ -53,65 +54,12 @@ export default function DashboardPage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<{x: number, y: number} | null>(null);
 
+  // Fetch images when component mounts and user is available
   useEffect(() => {
     if (isLoaded && user) {
       fetchImages();
     }
   }, [isLoaded, user]);
-
-  const fetchImages = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/images');
-      const data = await response.json();
-      
-      if (data.success) {
-        setImages(data.data);
-      } else {
-        toast.error('Failed to load images');
-      }
-    } catch (error) {
-      console.error('Error fetching images:', error);
-      toast.error('Failed to load images');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleImageSelect = (image: Image) => {
-    setSelectedImage(image);
-    // Navigate to editor
-    window.location.href = `/editor/${image.id}`;
-  };
-
-  const handleImageDelete = async (imageId: string) => {
-    if (!confirm('Are you sure you want to delete this image?')) return;
-
-    try {
-      const response = await fetch(`/api/images/${imageId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        setImages(images.filter(img => img.id !== imageId));
-        toast.success('Image deleted successfully');
-      } else {
-        toast.error('Failed to delete image');
-      }
-    } catch (error) {
-      console.error('Error deleting image:', error);
-      toast.error('Failed to delete image');
-    }
-  };
-
-  const handleUploadSuccess = (newImage: Image) => {
-    setImages([newImage, ...images]);
-    setShowUploader(false);
-    setPreviewImage(newImage);
-    setTextOverlays([]);
-    setSegmentation(null);
-    toast.success('Image uploaded successfully!');
-  };
 
   // Run segmentation when previewImage changes
   useEffect(() => {
@@ -174,7 +122,10 @@ export default function DashboardPage() {
           textCtx.font = `${overlay.style.fontWeight} ${overlay.style.fontSize}px ${overlay.style.fontFamily}`;
           textCtx.fillStyle = overlay.style.color;
           textCtx.globalAlpha = overlay.style.opacity;
-          textCtx.textAlign = overlay.style.textAlign || 'center';
+          const validTextAligns = ['left', 'right', 'center', 'start', 'end'] as const;
+const isValidAlign = validTextAligns.includes(overlay.style.textAlign as typeof validTextAligns[number]);
+textCtx.textAlign = isValidAlign ? overlay.style.textAlign as CanvasTextAlign : 'center';
+
           textCtx.textBaseline = 'middle';
           if (overlay.style.shadow) {
             textCtx.shadowColor = overlay.style.shadow.color || '#000000';
@@ -209,6 +160,91 @@ export default function DashboardPage() {
       }
     };
   }, [previewImage, segmentation, textOverlays]);
+
+  // Show loading state while Clerk is loading
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show sign-in prompt if not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Please sign in to access the dashboard</p>
+          <a href="/sign-in">
+            <Button>Sign In</Button>
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  const fetchImages = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/images');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setImages(data.data);
+      } else {
+        toast.error('Failed to load images');
+      }
+    } catch (error) {
+      console.error('Error fetching images:', error);
+      toast.error('Failed to load images');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImageSelect = (image: Image) => {
+    setSelectedImage(image);
+    // Navigate to editor
+    window.location.href = `/editor/${image.id}`;
+  };
+
+  const handleImageDelete = async (imageId: string) => {
+    if (!confirm('Are you sure you want to delete this image?')) return;
+
+    try {
+      const response = await fetch(`/api/images/${imageId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setImages(images.filter(img => img.id !== imageId));
+        toast.success('Image deleted successfully');
+      } else {
+        toast.error('Failed to delete image');
+      }
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      toast.error('Failed to delete image');
+    }
+  };
+
+  const handleUploadSuccess = (newImage: Image) => {
+    setImages([newImage, ...images]);
+    setShowUploader(false);
+    setPreviewImage(newImage);
+    setTextOverlays([]);
+    setSegmentation(null);
+    toast.success('Image uploaded successfully!');
+  };
 
   const handleAddText = () => {
     if (!previewImage) return;
@@ -256,10 +292,18 @@ export default function DashboardPage() {
   const handleColorChange = (id: string, color: string) => {
     setTextOverlays(textOverlays.map(t => t.id === id ? { ...t, style: { ...t.style, color } } : t));
   };
-  const handleFontWeightChange = (id: string, fontWeight: string) => {
-    setTextOverlays(textOverlays.map(t => t.id === id ? { ...t, style: { ...t.style, fontWeight } } : t));
-  };
-
+  const handleFontWeightChange = (
+  id: string,
+  fontWeight: "normal" | "bold" | "light" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900"
+) => {
+  setTextOverlays(
+    textOverlays.map(t =>
+      t.id === id
+        ? { ...t, style: { ...t.style, fontWeight } }
+        : t
+    )
+  );
+};
   const handleRemoveText = (id: string) => {
     setTextOverlays(textOverlays.filter(t => t.id !== id));
     if (editingTextId === id) setEditingTextId(null);
@@ -320,9 +364,19 @@ export default function DashboardPage() {
   };
 
   // Add handlers for new features
-  const handleTextAlignChange = (id: string, textAlign: string) => {
-    setTextOverlays(textOverlays => textOverlays.map(t => t.id === id ? { ...t, style: { ...t.style, textAlign } } : t));
-  };
+const handleTextAlignChange = (
+  id: string,
+  textAlign: 'left' | 'center' | 'right' | 'justify'
+) => {
+  setTextOverlays(textOverlays =>
+    textOverlays.map(t =>
+      t.id === id
+        ? { ...t, style: { ...t.style, textAlign } }
+        : t
+    )
+  );
+};
+
   const handleShadowChange = (id: string, shadow: any) => {
     setTextOverlays(textOverlays => textOverlays.map(t => t.id === id ? { ...t, style: { ...t.style, shadow } } : t));
   };
@@ -353,56 +407,35 @@ export default function DashboardPage() {
     link.click();
   };
 
-  if (!isLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="loading-spinner w-8 h-8"></div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Please sign in to continue</h1>
-          <Button onClick={() => window.location.href = '/sign-in'}>
-            Sign In
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <header className="bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border-b border-white/20 dark:border-gray-800/50">
         <div className="flex items-center justify-between px-4 py-4">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSidebarOpen(true)}
-              className="md:hidden"
+              className="md:hidden bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-800/50 hover:bg-white/20 dark:hover:bg-gray-900/20"
             >
               <Settings className="h-5 w-5" />
             </Button>
             <div className="flex items-center space-x-2">
-              <ImageIcon className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
-                ImageText Editor
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg blur-sm"></div>
+                <ImageIcon className="relative h-8 w-8 text-white" />
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                TextOverlayed
               </span>
             </div>
           </div>
           
           <div className="flex items-center space-x-4">
-            <Button onClick={() => setShowUploader(true)}>
-              <Upload className="h-4 w-4 mr-2" />
-              Upload Image
-            </Button>
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -508,7 +541,8 @@ export default function DashboardPage() {
                         <label className="block text-xs font-medium mb-0.5 text-blue-700 dark:text-blue-300">Weight</label>
                         <select
                           value={selectedOverlay.style.fontWeight}
-                          onChange={e => handleFontWeightChange(selectedOverlay.id, e.target.value)}
+                          onChange={e =>
+  handleFontWeightChange(selectedOverlay.id, e.target.value as FontWeight)}
                           className="w-full rounded border px-2 py-0.5 text-xs"
                         >
                           {FONT_WEIGHTS.map(weight => (

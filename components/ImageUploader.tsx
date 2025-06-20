@@ -23,7 +23,7 @@ export function ImageUploader({ onClose, onUploadSuccess }: ImageUploaderProps) 
     const file = acceptedFiles[0];
     const validation = validateImageFile(file);
     if (!validation.valid) {
-      toast.error(validation.error);
+      toast.error(validation.error || 'Invalid image file.');
       return;
     }
     setUploading(true);

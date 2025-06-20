@@ -1,68 +1,102 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  ImageIcon, 
-  Type, 
-  Download, 
-  Zap, 
-  Shield, 
-  Users,
-  CheckCircle,
-  Star
-} from 'lucide-react';
-import { SignInButton } from '@clerk/nextjs';
+import { ImageIcon, Youtube, Instagram, Twitter, Facebook, Type, Wand2 } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
+import { useEffect, useRef } from 'react';
+
+const FeatureCard = ({ icon, title, children }: { icon: React.ReactNode, title: string, children: React.ReactNode }) => (
+  <div className="bg-white/40 dark:bg-gray-800/40 p-6 rounded-2xl border border-white/50 dark:border-gray-700/50 shadow-lg backdrop-blur-lg transition-all duration-300 hover:shadow-xl hover:border-white">
+    <div className="flex items-center space-x-4 mb-4">
+      <div className="p-2 bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg text-white">
+        {icon}
+      </div>
+      <h3 className="text-xl font-bold text-gray-800 dark:text-white">{title}</h3>
+    </div>
+    <p className="text-gray-600 dark:text-gray-400">{children}</p>
+  </div>
+);
 
 export default function HomePage() {
+  const heroRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!heroRef.current) return;
+      const { clientX, clientY } = e;
+      const { offsetWidth, offsetHeight } = heroRef.current;
+      const x = (clientX - offsetWidth / 2) / (offsetWidth / 2);
+      const y = (clientY - offsetHeight / 2) / (offsetHeight / 2);
+      heroRef.current.style.transform = `perspective(1000px) rotateY(${x * 5}deg) rotateX(${-y * 5}deg) scale3d(1, 1, 1)`;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900 text-gray-800 dark:text-gray-200">
+      {/* Background Shapes */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-red-400 rounded-full mix-blend-multiply filter blur-2xl opacity-30 animate-blob"></div>
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-orange-400 rounded-full mix-blend-multiply filter blur-2xl opacity-30 animate-blob animation-delay-2000"></div>
+         <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-rose-400 rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob animation-delay-4000"></div>
+      </div>
+
       {/* Header */}
-      <header className="relative z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+      <header className="relative z-50 w-full">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-2">
-              <ImageIcon className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
-                ImageText Editor
+          <div className="flex items-center justify-between h-20 border-b border-white/20 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl shadow-lg rounded-b-2xl">
+            <div className="flex items-center space-x-3 px-4">
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-red-600 to-orange-500 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
+                <div className="relative p-2 bg-white/80 dark:bg-black/80 rounded-lg leading-none flex items-center">
+                  <ImageIcon className="h-6 w-6 text-red-600" />
+                </div>
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-red-700 to-orange-500 bg-clip-text text-transparent">
+                TextOverlayed
               </span>
             </div>
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link href="#features" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
-                Features
-              </Link>
-            </nav>
-            <div className="flex items-center space-x-4">
-              <SignInButton mode="modal">
-                <Button variant="ghost" size="sm">
-                  Sign In
-                </Button>
-              </SignInButton>
+            <div className="flex items-center space-x-4 px-4">
+              <ThemeToggle />
             </div>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-20 sm:py-32">
+      <section
+        ref={heroRef}
+        className="relative py-20 sm:py-32 transition-transform duration-300 ease-out"
+        style={{ willChange: 'transform' }}
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-              Professional Image Editing
-              <span className="text-blue-600 dark:text-blue-400"> with Text Overlays</span>
+          <div className="relative z-10 text-center">
+             <h1 className="text-2xl sm:text-4xl font-extrabold mb-6 drop-shadow-sm">
+              <span className="bg-gradient-to-b from-gray-800 to-black dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
+                Create Stunning{" "}
+              </span>
+              <span className="text-violet-500 dark:text-violet-400">
+                Thumbnails
+              </span>
+              <span className="bg-gradient-to-b from-gray-800 to-black dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
+                {" "}and{" "}
+              </span>
+              <span className="text-violet-500 dark:text-violet-400">
+                Social Media Posts
+              </span>
+              <span className="bg-gradient-to-b from-gray-800 to-black dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
+                {" "}in Seconds.
+              </span>
             </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-              Create stunning images with customizable text overlays. Upload, edit, and export 
-              high-quality images with our professional SaaS platform designed for creators.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <SignInButton mode="modal">
-                <Button size="lg" className="text-lg px-8 py-3">
-                  Sign In
-                </Button>
-              </SignInButton>
-              <Link href="/dashboard">
-                <Button variant="outline" size="lg" className="text-lg px-8 py-3">
-                  Try Demo
+            <div className="flex justify-center">
+              <Link href="/sign-in">
+                <Button size="lg" className="text-lg px-10 py-4 bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 text-white border-0 shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm rounded-xl">
+                  Get Started
                 </Button>
               </Link>
             </div>
@@ -71,125 +105,30 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-white dark:bg-gray-800">
+      <section className="relative z-10 py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Powerful Features for Professional Results
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Everything you need to create stunning images with text overlays
-            </p>
-          </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <ImageIcon className="h-12 w-12 text-blue-600 mb-4" />
-                <CardTitle>Drag & Drop Upload</CardTitle>
-                <CardDescription>
-                  Upload images effortlessly with our intuitive drag-and-drop interface
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <Type className="h-12 w-12 text-green-600 mb-4" />
-                <CardTitle>Advanced Text Editor</CardTitle>
-                <CardDescription>
-                  Add, edit, and style text with professional typography tools
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <Download className="h-12 w-12 text-purple-600 mb-4" />
-                <CardTitle>High-Quality Export</CardTitle>
-                <CardDescription>
-                  Export your creations in multiple formats with original resolution
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <Zap className="h-12 w-12 text-yellow-600 mb-4" />
-                <CardTitle>Real-time Preview</CardTitle>
-                <CardDescription>
-                  See changes instantly as you edit with live preview
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <Shield className="h-12 w-12 text-red-600 mb-4" />
-                <CardTitle>Secure & Private</CardTitle>
-                <CardDescription>
-                  Your images are secure with enterprise-grade encryption
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <Users className="h-12 w-12 text-indigo-600 mb-4" />
-                <CardTitle>Team Collaboration</CardTitle>
-                <CardDescription>
-                  Share projects and collaborate with team members seamlessly
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <FeatureCard icon={<Youtube />} title="YouTube Thumbnails">
+              Grab your audience's attention with compelling text that boosts click-through rates.
+            </FeatureCard>
+            <FeatureCard icon={<Instagram />} title="Instagram Posts">
+              Create beautiful, share-worthy graphics for your feed and stories in minutes.
+            </FeatureCard>
+            <FeatureCard icon={<Twitter />} title="Twitter Graphics">
+              Design eye-catching images that get your message seen and retweeted across the platform.
+            </FeatureCard>
+            <FeatureCard icon={<Facebook />} title="Facebook Ads & Posts">
+              Craft professional ad creatives that stop the scroll and drive tangible conversions.
+            </FeatureCard>
+            <FeatureCard icon={<Type />} title="Huge Font Library">
+              Access hundreds of professional fonts to perfectly match your brand and style.
+            </FeatureCard>
+            <FeatureCard icon={<Wand2 />} title="Effortless Editing">
+              Customize everything from color and size to shadows and rotation with our intuitive editor.
+            </FeatureCard>
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <ImageIcon className="h-8 w-8 text-blue-400" />
-                <span className="text-xl font-bold">ImageText Editor</span>
-              </div>
-              <p className="text-gray-400">
-                Professional image editing with text overlays for creators worldwide.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="#features" className="hover:text-white transition-colors">Features</Link></li>
-                <li><Link href="/templates" className="hover:text-white transition-colors">Templates</Link></li>
-                <li><Link href="/api" className="hover:text-white transition-colors">API</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
-                <li><Link href="/careers" className="hover:text-white transition-colors">Careers</Link></li>
-                <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/help" className="hover:text-white transition-colors">Help Center</Link></li>
-                <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
-                <li><Link href="/status" className="hover:text-white transition-colors">Status</Link></li>
-                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 ImageText Editor. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 } 

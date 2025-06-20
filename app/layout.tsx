@@ -7,12 +7,12 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'ImageText Editor - Professional Image Editing with Text Overlays',
+  title: 'TextOverlayed - Professional Image Editing with Text Overlays',
   description: 'Create stunning images with customizable text overlays. Upload, edit, and export high-quality images with our professional SaaS platform.',
   keywords: 'image editor, text overlay, image editing, SaaS, design tools',
-  authors: [{ name: 'ImageText Editor Team' }],
-  creator: 'ImageText Editor',
-  publisher: 'ImageText Editor',
+  authors: [{ name: 'TextOverlayed Team' }],
+  creator: 'TextOverlayed',
+  publisher: 'TextOverlayed',
   formatDetection: {
     email: false,
     address: false,
@@ -20,16 +20,16 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   openGraph: {
-    title: 'ImageText Editor - Professional Image Editing with Text Overlays',
+    title: 'TextOverlayed - Professional Image Editing with Text Overlays',
     description: 'Create stunning images with customizable text overlays. Upload, edit, and export high-quality images.',
     url: '/',
-    siteName: 'ImageText Editor',
+    siteName: 'TextOverlayed',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'ImageText Editor - Professional Image Editing Platform',
+        alt: 'TextOverlayed - Professional Image Editing Platform',
       },
     ],
     locale: 'en_US',
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ImageText Editor - Professional Image Editing with Text Overlays',
+    title: 'TextOverlayed - Professional Image Editing with Text Overlays',
     description: 'Create stunning images with customizable text overlays. Upload, edit, and export high-quality images.',
     images: ['/og-image.png'],
   },
@@ -63,7 +63,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+    >
       <html lang="en" suppressHydrationWarning>
         <body className={inter.className}>
           <div className="min-h-screen bg-background">

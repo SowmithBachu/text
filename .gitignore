@@ -1,1 +1,23 @@
-node_modules
+# Dependency directories
+node_modules/
+
+# Next.js build output
+.next/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local environment variables
+.env.local
+.env.*.local
+
+# Vercel config (optional)
+.vercel
+
+# Mac system files
+.DS_Store
+
+# clerk configuration (can include secrets)
+/.clerk/

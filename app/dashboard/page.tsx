@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,8 +12,8 @@ import {
 } from 'lucide-react';
 import { ImageUploader } from '@/components/ImageUploader';
 import { ImageGallery } from '@/components/ImageGallery';
-import { Sidebar } from '@/components/Sidebar';
-import ThemeToggle from '@/components/ThemeToggle';
+import { Sidebar } from '@/components/layout/Sidebar';
+import ThemeToggle from '@/components/layout/ThemeToggle';
 import { useEditorStore } from '@/store/editorStore';
 import { Image, TextOverlay } from '@/types';
 import toast from 'react-hot-toast';
@@ -46,6 +46,7 @@ export default function DashboardPage() {
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [newText, setNewText] = useState('Your Text');
   const [segmentation, setSegmentation] = useState<ImageData | null>(null);
+  const [imageProcessing, setImageProcessing] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const { setSelectedImage } = useEditorStore();
@@ -93,6 +94,7 @@ export default function DashboardPage() {
       const maxH = 500;
       const ratio = Math.min(maxW / w, maxH / h, 1);
       setCanvasDims({ width: Math.round(w * ratio), height: Math.round(h * ratio) });
+      setImageProcessing(false);
     };
   }, [previewImage]);
 
@@ -179,7 +181,7 @@ textCtx.textAlign = isValidAlign ? overlay.style.textAlign as CanvasTextAlign : 
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <p className="text-gray-600 dark:text-gray-400 mb-4">Please sign in to access the dashboard</p>
-          <a href="/sign-in">
+          <a href="/signin">
             <Button>Sign In</Button>
           </a>
         </div>
@@ -187,7 +189,7 @@ textCtx.textAlign = isValidAlign ? overlay.style.textAlign as CanvasTextAlign : 
     );
   }
 
-  const fetchImages = async () => {
+  const fetchImages = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/images');
@@ -209,15 +211,17 @@ textCtx.textAlign = isValidAlign ? overlay.style.textAlign as CanvasTextAlign : 
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleImageSelect = (image: Image) => {
+  const handleImageSelect = useCallback((image: Image) => {
     setSelectedImage(image);
-    // Navigate to editor
-    window.location.href = `/editor/${image.id}`;
-  };
+    setPreviewImage(image);
+    setTextOverlays([]);
+    setSegmentation(null);
+    setImageProcessing(true);
+  }, [setSelectedImage]);
 
-  const handleImageDelete = async (imageId: string) => {
+  const handleImageDelete = useCallback(async (imageId: string) => {
     if (!confirm('Are you sure you want to delete this image?')) return;
 
     try {
@@ -226,7 +230,7 @@ textCtx.textAlign = isValidAlign ? overlay.style.textAlign as CanvasTextAlign : 
       });
 
       if (response.ok) {
-        setImages(images.filter(img => img.id !== imageId));
+        setImages(prevImages => prevImages.filter(img => img.id !== imageId));
         toast.success('Image deleted successfully');
       } else {
         toast.error('Failed to delete image');
@@ -235,18 +239,19 @@ textCtx.textAlign = isValidAlign ? overlay.style.textAlign as CanvasTextAlign : 
       console.error('Error deleting image:', error);
       toast.error('Failed to delete image');
     }
-  };
+  }, []);
 
-  const handleUploadSuccess = (newImage: Image) => {
-    setImages([newImage, ...images]);
+  const handleUploadSuccess = useCallback((newImage: Image) => {
+    setImages(prevImages => [newImage, ...prevImages]);
     setShowUploader(false);
     setPreviewImage(newImage);
     setTextOverlays([]);
     setSegmentation(null);
+    setImageProcessing(true);
     toast.success('Image uploaded successfully!');
-  };
+  }, []);
 
-  const handleAddText = () => {
+  const handleAddText = useCallback(() => {
     if (!previewImage) return;
     const imgW = previewImage.width || 400;
     const imgH = previewImage.height || 400;
@@ -269,50 +274,53 @@ textCtx.textAlign = isValidAlign ? overlay.style.textAlign as CanvasTextAlign : 
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    setTextOverlays([...textOverlays, overlay]);
+    setTextOverlays(prevOverlays => [...prevOverlays, overlay]);
     setEditingTextId(id);
     setNewText('Your Text');
     // Scroll to canvas after adding text
     setTimeout(() => {
       canvasContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 200);
-  };
+  }, [previewImage, textOverlays.length]);
 
-  const handleTextChange = (id: string, value: string) => {
-    setTextOverlays(textOverlays.map(t => t.id === id ? { ...t, text: value } : t));
-  };
+  const handleTextChange = useCallback((id: string, value: string) => {
+    setTextOverlays(prevOverlays => prevOverlays.map(t => t.id === id ? { ...t, text: value } : t));
+  }, []);
 
   // Text style handlers
-  const handleFontChange = (id: string, fontFamily: string) => {
-    setTextOverlays(textOverlays.map(t => t.id === id ? { ...t, style: { ...t.style, fontFamily } } : t));
-  };
-  const handleFontSizeChange = (id: string, fontSize: number) => {
-    setTextOverlays(textOverlays.map(t => t.id === id ? { ...t, style: { ...t.style, fontSize } } : t));
-  };
-  const handleColorChange = (id: string, color: string) => {
-    setTextOverlays(textOverlays.map(t => t.id === id ? { ...t, style: { ...t.style, color } } : t));
-  };
-  const handleFontWeightChange = (
+  const handleFontChange = useCallback((id: string, fontFamily: string) => {
+    setTextOverlays(prevOverlays => prevOverlays.map(t => t.id === id ? { ...t, style: { ...t.style, fontFamily } } : t));
+  }, []);
+  const handleFontSizeChange = useCallback((id: string, fontSize: number) => {
+    setTextOverlays(prevOverlays => prevOverlays.map(t => t.id === id ? { ...t, style: { ...t.style, fontSize } } : t));
+  }, []);
+  const handleColorChange = useCallback((id: string, color: string) => {
+    setTextOverlays(prevOverlays => prevOverlays.map(t => t.id === id ? { ...t, style: { ...t.style, color } } : t));
+  }, []);
+  const handleFontWeightChange = useCallback((
   id: string,
   fontWeight: "normal" | "bold" | "light" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900"
 ) => {
-  setTextOverlays(
-    textOverlays.map(t =>
+  setTextOverlays(prevOverlays =>
+    prevOverlays.map(t =>
       t.id === id
         ? { ...t, style: { ...t.style, fontWeight } }
         : t
     )
   );
-};
-  const handleRemoveText = (id: string) => {
-    setTextOverlays(textOverlays.filter(t => t.id !== id));
+}, []);
+  const handleRemoveText = useCallback((id: string) => {
+    setTextOverlays(prevOverlays => prevOverlays.filter(t => t.id !== id));
     if (editingTextId === id) setEditingTextId(null);
-  };
+  }, [editingTextId]);
 
-  const selectedOverlay = textOverlays.find(t => t.id === editingTextId);
+  const selectedOverlay = useMemo(() => 
+    textOverlays.find(t => t.id === editingTextId), 
+    [textOverlays, editingTextId]
+  );
 
   // Mouse event handlers for dragging overlays
-  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleCanvasMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current || !previewImage) return;
     const rect = canvasRef.current.getBoundingClientRect();
     const scaleX = previewImage.width / rect.width;
@@ -336,24 +344,24 @@ textCtx.textAlign = isValidAlign ? overlay.style.textAlign as CanvasTextAlign : 
         return;
       }
     }
-  };
-  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  }, [previewImage, textOverlays]);
+  const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!draggingId || !canvasRef.current || !previewImage) return;
     const rect = canvasRef.current.getBoundingClientRect();
     const scaleX = previewImage.width / rect.width;
     const scaleY = previewImage.height / rect.height;
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
-    setTextOverlays(textOverlays => textOverlays.map(t =>
+    setTextOverlays(prevOverlays => prevOverlays.map(t =>
       t.id === draggingId && dragOffset
         ? { ...t, position: { x: x - dragOffset.x, y: y - dragOffset.y } }
         : t
     ));
-  };
-  const handleCanvasMouseUp = () => {
+  }, [draggingId, dragOffset, previewImage]);
+  const handleCanvasMouseUp = useCallback(() => {
     setDraggingId(null);
     setDragOffset(null);
-  };
+  }, []);
 
   // Add handlers for opacity and letter spacing
   const handleOpacityChange = (id: string, opacity: number) => {
@@ -453,6 +461,10 @@ const handleTextAlignChange = (
                 {images.length} images
               </p>
             </div>
+            <Button onClick={() => setShowUploader(true)} className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+              <Upload className="h-4 w-4 mr-2" />
+              Upload Image
+            </Button>
           </div>
 
           {/* Image Gallery */}
@@ -460,29 +472,48 @@ const handleTextAlignChange = (
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 flex flex-col md:flex-row items-start gap-8 border border-gray-200 dark:border-gray-700 max-w-5xl mx-auto">
               {/* Left: Image Preview */}
               <div ref={canvasContainerRef} className="flex-1 flex justify-center items-center min-h-[300px] w-full md:w-auto" style={{ minHeight: canvasDims.height }}>
-                <canvas
-                  ref={canvasRef}
-                  width={canvasDims.width}
-                  height={canvasDims.height}
-                  className="rounded-xl border-2 border-blue-200 shadow-lg bg-gray-100 dark:bg-gray-900 transition-all duration-300 cursor-move"
-                  style={{
-                    width: canvasDims.width,
-                    height: canvasDims.height,
-                    maxWidth: '100%',
-                    maxHeight: 500,
-                    objectFit: 'contain',
-                    background: '#f3f4f6',
-                  }}
-                  onMouseDown={handleCanvasMouseDown}
-                  onMouseMove={handleCanvasMouseMove}
-                  onMouseUp={handleCanvasMouseUp}
-                />
+                {imageProcessing ? (
+                  <div className="flex flex-col items-center justify-center space-y-4">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+                    <p className="text-gray-600 dark:text-gray-400 text-center">
+                      Processing image...<br />
+                      <span className="text-sm">This may take a few seconds</span>
+                    </p>
+                  </div>
+                ) : (
+                  <canvas
+                    ref={canvasRef}
+                    width={canvasDims.width}
+                    height={canvasDims.height}
+                    className="rounded-xl border-2 border-blue-200 shadow-lg bg-gray-100 dark:bg-gray-900 transition-all duration-300 cursor-move"
+                    style={{
+                      width: canvasDims.width,
+                      height: canvasDims.height,
+                      maxWidth: '100%',
+                      maxHeight: 500,
+                      objectFit: 'contain',
+                      background: '#f3f4f6',
+                    }}
+                    onMouseDown={handleCanvasMouseDown}
+                    onMouseMove={handleCanvasMouseMove}
+                    onMouseUp={handleCanvasMouseUp}
+                  />
+                )}
               </div>
               {/* Right: Edit Panel */}
               <div className="flex-1 w-full md:w-[400px] flex flex-col gap-4">
-                <Button className="w-full max-w-xs self-center" onClick={handleAddText}>
-                  + Add Text
-                </Button>
+                {imageProcessing ? (
+                  <div className="flex flex-col items-center justify-center space-y-4 py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <p className="text-gray-600 dark:text-gray-400 text-center text-sm">
+                      Preparing editor...
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <Button className="w-full max-w-xs self-center" onClick={handleAddText}>
+                      + Add Text
+                    </Button>
                 {/* Overlay list with remove buttons */}
                 {textOverlays.length > 0 && (
                   <div className="mb-2 flex gap-2 flex-wrap w-full">
@@ -645,11 +676,16 @@ const handleTextAlignChange = (
                     </div>
                   </div>
                 )}
+                  </>
+                )}
               </div>
             </div>
           ) : loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="loading-spinner w-8 h-8"></div>
+              <div className="flex flex-col items-center space-y-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p className="text-gray-600 dark:text-gray-400">Loading images...</p>
+              </div>
             </div>
           ) : images.length === 0 ? (
             <Card className="text-center py-12">

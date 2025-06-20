@@ -11,7 +11,7 @@ yarn-error.log*
 
 # Local environment variables
 .env.local
-.env.*.local
+
 
 # Vercel config (optional)
 .vercel

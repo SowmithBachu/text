@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ImageIcon, Youtube, Instagram, Twitter, Facebook, Type, Wand2 } from 'lucide-react';
-import ThemeToggle from '@/components/ThemeToggle';
+import ThemeToggle from '@/components/layout/ThemeToggle';
 import { useEffect, useRef } from 'react';
 
 const FeatureCard = ({ icon, title, children }: { icon: React.ReactNode, title: string, children: React.ReactNode }) => (
@@ -94,7 +94,7 @@ export default function HomePage() {
               </span>
             </h1>
             <div className="flex justify-center">
-              <Link href="/sign-in">
+              <Link href="/signin">
                 <Button size="lg" className="text-lg px-10 py-4 bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 text-white border-0 shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm rounded-xl">
                   Get Started
                 </Button>

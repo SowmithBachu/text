@@ -1,19 +1,19 @@
-import { SignIn } from '@clerk/nextjs';
+import { SignUp } from '@clerk/nextjs';
 
-export default function SignInPage() {
+export default function SignUpPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Sign in to your account
+            Create your account
           </h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Welcome back to TextOverlayed
+            Start creating amazing images with TextOverlayed
           </p>
         </div>
         <div className="bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-gray-800/50 p-6">
-          <SignIn 
+          <SignUp 
             redirectUrl="/dashboard"
             appearance={{
               elements: {
@@ -36,4 +36,4 @@ export default function SignInPage() {
       </div>
     </div>
   );
-} 
+}

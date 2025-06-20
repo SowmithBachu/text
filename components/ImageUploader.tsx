@@ -26,32 +26,39 @@ export function ImageUploader({ onClose, onUploadSuccess }: ImageUploaderProps) 
       toast.error(validation.error || 'Invalid image file.');
       return;
     }
+    
     setUploading(true);
-    setUploadProgress(100);
-    // Use blob URL for preview
-    const blobUrl = URL.createObjectURL(file);
-    // Read real image dimensions
-    const img = new window.Image();
-    img.src = blobUrl;
-    img.onload = () => {
-      const imageData: Image = {
-        id: `img_${Date.now()}`,
-        userId: 'demo',
-        name: file.name,
-        originalUrl: blobUrl,
-        thumbnailUrl: blobUrl,
-        fileSize: file.size,
-        width: img.width,
-        height: img.height,
-        format: file.type.split('/')[1],
-        textOverlays: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+    setUploadProgress(0);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch('/api/images', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setUploadProgress(100);
+        onUploadSuccess(result.data);
+        toast.success('Image uploaded successfully!');
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload image');
+    } finally {
       setUploading(false);
       setUploadProgress(0);
-      onUploadSuccess(imageData);
-    };
+    }
   }, [onUploadSuccess]);
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({

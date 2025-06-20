@@ -54,10 +54,10 @@ export default function HomePage() {
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-red-600 to-orange-500 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
                 <div className="relative p-2 bg-white/80 dark:bg-black/80 rounded-lg leading-none flex items-center">
-                  <ImageIcon className="h-6 w-6 text-red-600" />
+                  <ImageIcon className="h-6 w-6 text-black dark:text-white" />
                 </div>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-red-700 to-orange-500 bg-clip-text text-transparent">
+              <span className="text-xl font-bold text-black dark:text-white">
                 TextOverlayed
               </span>
             </div>

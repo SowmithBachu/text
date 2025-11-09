@@ -168,7 +168,7 @@ textCtx.textAlign = isValidAlign ? overlay.style.textAlign as CanvasTextAlign : 
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black dark:border-gray-400 mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
       </div>
@@ -416,27 +416,29 @@ const handleTextAlignChange = (
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
       {/* Header */}
-      <header className="bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border-b border-white/20 dark:border-gray-800/50">
-        <div className="flex items-center justify-between px-4 py-4">
+      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b-2 border-gray-200 dark:border-gray-800 shadow-lg">
+        <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSidebarOpen(true)}
-              className="md:hidden bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-800/50 hover:bg-white/20 dark:hover:bg-gray-900/20"
+              className="md:hidden bg-gray-100 dark:bg-gray-800 backdrop-blur-xl border-2 border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-all duration-300"
             >
-              <Settings className="h-5 w-5" />
+              <Settings className="h-5 w-5 text-gray-700 dark:text-gray-300" />
             </Button>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg blur-sm"></div>
-                <ImageIcon className="relative h-8 w-8 text-white" />
+                <div className="absolute inset-0 bg-black dark:bg-gray-700 rounded-xl blur-md opacity-20 dark:opacity-40"></div>
+                <div className="relative bg-black dark:bg-gray-800 p-2 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                  <ImageIcon className="h-6 w-6 text-white" />
+                </div>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="text-2xl font-extrabold text-black dark:text-white">
                 TextOverlayed
               </span>
             </div>
@@ -449,22 +451,21 @@ const handleTextAlignChange = (
       </header>
 
       {/* Main Content */}
-      <main className="p-6">
-        <div className="max-w-7xl mx-auto">
+      <main className="relative p-6">
+        {/* Subtle background decorations */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gray-200/10 dark:bg-gray-800/20 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gray-300/10 dark:bg-gray-700/20 rounded-full blur-3xl -z-10"></div>
+        
+        <div className="max-w-7xl mx-auto relative">
           {/* Gallery Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+            <div className="space-y-2">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-black dark:text-white">
                 My Images
               </h1>
-              <p className="text-gray-600 dark:text-gray-300">
-                {images.length} images
-              </p>
+              
             </div>
-            <Button onClick={() => setShowUploader(true)} className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
-              <Upload className="h-4 w-4 mr-2" />
-              Upload Image
-            </Button>
+            
           </div>
 
           {/* Image Gallery */}
@@ -474,7 +475,7 @@ const handleTextAlignChange = (
               <div ref={canvasContainerRef} className="flex-1 flex justify-center items-center min-h-[300px] w-full md:w-auto" style={{ minHeight: canvasDims.height }}>
                 {imageProcessing ? (
                   <div className="flex flex-col items-center justify-center space-y-4">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-black dark:border-gray-400"></div>
                     <p className="text-gray-600 dark:text-gray-400 text-center">
                       Processing image...<br />
                       <span className="text-sm">This may take a few seconds</span>
@@ -485,7 +486,7 @@ const handleTextAlignChange = (
                     ref={canvasRef}
                     width={canvasDims.width}
                     height={canvasDims.height}
-                    className="rounded-xl border-2 border-blue-200 shadow-lg bg-gray-100 dark:bg-gray-900 transition-all duration-300 cursor-move"
+                    className="rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-lg bg-gray-100 dark:bg-gray-900 transition-all duration-300 cursor-move"
                     style={{
                       width: canvasDims.width,
                       height: canvasDims.height,
@@ -504,14 +505,14 @@ const handleTextAlignChange = (
               <div className="flex-1 w-full md:w-[400px] flex flex-col gap-4">
                 {imageProcessing ? (
                   <div className="flex flex-col items-center justify-center space-y-4 py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black dark:border-gray-400"></div>
                     <p className="text-gray-600 dark:text-gray-400 text-center text-sm">
                       Preparing editor...
                     </p>
                   </div>
                 ) : (
                   <>
-                    <Button className="w-full max-w-xs self-center" onClick={handleAddText}>
+                    <Button className="w-full max-w-xs self-center bg-black dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white" onClick={handleAddText}>
                       + Add Text
                     </Button>
                 {/* Overlay list with remove buttons */}
@@ -520,7 +521,7 @@ const handleTextAlignChange = (
                     {textOverlays.map(overlay => (
                       <div key={overlay.id} className="flex items-center gap-1">
                         <button
-                          className={`px-2 py-1 rounded border ${editingTextId === overlay.id ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                          className={`px-2 py-1 rounded border ${editingTextId === overlay.id ? 'bg-black dark:bg-gray-700 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
                           onClick={() => setEditingTextId(overlay.id)}
                         >
                           {overlay.text || 'Text'}
@@ -538,26 +539,26 @@ const handleTextAlignChange = (
                 )}
                 {/* Text editing panel */}
                 {selectedOverlay && (
-                  <div className="w-full bg-gradient-to-br from-gray-50 via-blue-50 to-gray-200 dark:from-gray-800 dark:via-gray-900 dark:to-gray-700 rounded-2xl p-4 flex flex-col gap-2 shadow-lg border border-blue-200 dark:border-blue-900">
+                  <div className="w-full bg-white dark:bg-gray-800 rounded-2xl p-4 flex flex-col gap-2 shadow-lg border border-gray-200 dark:border-gray-700">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="font-semibold text-base text-blue-700 dark:text-blue-300 tracking-wide">Edit Text</span>
-                      <button className="text-xs text-blue-500 underline" onClick={() => handleResetStyles(selectedOverlay.id)}>Reset</button>
+                      <span className="font-semibold text-base text-black dark:text-white tracking-wide">Edit Text</span>
+                      <button className="text-xs text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white underline" onClick={() => handleResetStyles(selectedOverlay.id)}>Reset</button>
                     </div>
                     {/* Text Content */}
                     <div className="mb-0.5">
-                      <label className="block text-xs font-medium mb-0.5 text-blue-700 dark:text-blue-300">Text</label>
+                      <label className="block text-xs font-medium mb-0.5 text-gray-700 dark:text-gray-300">Text</label>
                       <input
                         type="text"
                         value={selectedOverlay?.text || ''}
                         onChange={e => selectedOverlay && handleTextChange(selectedOverlay.id, e.target.value)}
-                        className="w-full rounded border px-2 py-0.5 text-sm shadow focus:ring-2 focus:ring-blue-400"
+                        className="w-full rounded border px-2 py-0.5 text-sm shadow focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500"
                       />
                     </div>
-                    <div className="border-t border-blue-100 dark:border-blue-900 my-0.5" />
+                    <div className="border-t border-gray-200 dark:border-gray-700 my-0.5" />
                     {/* Font Controls */}
                     <div className="grid grid-cols-2 gap-1">
                       <div>
-                        <label className="block text-xs font-medium mb-0.5 text-blue-700 dark:text-blue-300">Font</label>
+                        <label className="block text-xs font-medium mb-0.5 text-gray-700 dark:text-gray-300">Font</label>
                         <select
                           value={selectedOverlay.style.fontFamily}
                           onChange={e => handleFontChange(selectedOverlay.id, e.target.value)}
@@ -569,7 +570,7 @@ const handleTextAlignChange = (
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium mb-0.5 text-blue-700 dark:text-blue-300">Weight</label>
+                        <label className="block text-xs font-medium mb-0.5 text-gray-700 dark:text-gray-300">Weight</label>
                         <select
                           value={selectedOverlay.style.fontWeight}
                           onChange={e =>
@@ -582,7 +583,7 @@ const handleTextAlignChange = (
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium mb-0.5 text-blue-700 dark:text-blue-300">Size</label>
+                        <label className="block text-xs font-medium mb-0.5 text-gray-700 dark:text-gray-300">Size</label>
                         <div className="flex items-center gap-1">
                           <input
                             type="range"
@@ -590,7 +591,7 @@ const handleTextAlignChange = (
                             max={400}
                             value={selectedOverlay.style.fontSize}
                             onChange={e => handleFontSizeChange(selectedOverlay.id, Number(e.target.value))}
-                            className="flex-1 accent-blue-500"
+                            className="flex-1 accent-black dark:accent-gray-400"
                           />
                           <input
                             type="number"
@@ -603,28 +604,28 @@ const handleTextAlignChange = (
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium mb-0.5 text-blue-700 dark:text-blue-300">Color</label>
+                        <label className="block text-xs font-medium mb-0.5 text-gray-700 dark:text-gray-300">Color</label>
                         <input
                           type="color"
                           value={selectedOverlay.style.color}
                           onChange={e => handleColorChange(selectedOverlay.id, e.target.value)}
-                          className="w-7 h-7 p-0 border-2 border-blue-200 rounded-full shadow"
+                          className="w-7 h-7 p-0 border-2 border-gray-300 dark:border-gray-600 rounded-full shadow"
                         />
                       </div>
                     </div>
-                    <div className="border-t border-blue-100 dark:border-blue-900 my-0.5" />
+                    <div className="border-t border-gray-200 dark:border-gray-700 my-0.5" />
                     {/* Alignment & Opacity */}
                     <div className="flex gap-1 items-center">
                       <div className="flex-1">
-                        <label className="block text-xs font-medium mb-0.5 text-blue-700 dark:text-blue-300">Align</label>
+                        <label className="block text-xs font-medium mb-0.5 text-gray-700 dark:text-gray-300">Align</label>
                         <div className="flex gap-0.5">
-                          <button className={`px-1 py-0.5 rounded ${selectedOverlay.style.textAlign === 'left' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`} onClick={() => handleTextAlignChange(selectedOverlay.id, 'left')}>L</button>
-                          <button className={`px-1 py-0.5 rounded ${selectedOverlay.style.textAlign === 'center' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`} onClick={() => handleTextAlignChange(selectedOverlay.id, 'center')}>C</button>
-                          <button className={`px-1 py-0.5 rounded ${selectedOverlay.style.textAlign === 'right' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`} onClick={() => handleTextAlignChange(selectedOverlay.id, 'right')}>R</button>
+                          <button className={`px-1 py-0.5 rounded ${selectedOverlay.style.textAlign === 'left' ? 'bg-black dark:bg-gray-700 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`} onClick={() => handleTextAlignChange(selectedOverlay.id, 'left')}>L</button>
+                          <button className={`px-1 py-0.5 rounded ${selectedOverlay.style.textAlign === 'center' ? 'bg-black dark:bg-gray-700 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`} onClick={() => handleTextAlignChange(selectedOverlay.id, 'center')}>C</button>
+                          <button className={`px-1 py-0.5 rounded ${selectedOverlay.style.textAlign === 'right' ? 'bg-black dark:bg-gray-700 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`} onClick={() => handleTextAlignChange(selectedOverlay.id, 'right')}>R</button>
                         </div>
                       </div>
                       <div className="flex-1">
-                        <label className="block text-xs font-medium mb-0.5 text-blue-700 dark:text-blue-300">Opacity</label>
+                        <label className="block text-xs font-medium mb-0.5 text-gray-700 dark:text-gray-300">Opacity</label>
                         <input
                           type="range"
                           min={0}
@@ -632,41 +633,41 @@ const handleTextAlignChange = (
                           step={0.01}
                           value={selectedOverlay.style.opacity ?? 1}
                           onChange={e => handleOpacityChange(selectedOverlay.id, parseFloat(e.target.value))}
-                          className="w-full accent-blue-500"
+                          className="w-full accent-black dark:accent-gray-400"
                         />
                       </div>
                     </div>
-                    <div className="border-t border-blue-100 dark:border-blue-900 my-0.5" />
+                    <div className="border-t border-gray-200 dark:border-gray-700 my-0.5" />
                     {/* Shadow Controls */}
                     <div className="flex gap-1 mb-1 items-end">
                       <div>
-                        <label className="block text-xs font-medium mb-0.5 text-blue-700 dark:text-blue-300">Shadow</label>
+                        <label className="block text-xs font-medium mb-0.5 text-gray-700 dark:text-gray-300">Shadow</label>
                         <input type="color" value={selectedOverlay.style.shadow?.color || '#000000'} onChange={e => handleShadowChange(selectedOverlay.id, { ...selectedOverlay.style.shadow, color: e.target.value, blur: selectedOverlay.style.shadow?.blur || 0, offsetX: selectedOverlay.style.shadow?.offsetX || 0, offsetY: selectedOverlay.style.shadow?.offsetY || 0 })} className="w-6 h-6 border rounded" />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-xs font-medium mb-0.5 text-blue-700 dark:text-blue-300">Blur</label>
+                        <label className="block text-xs font-medium mb-0.5 text-gray-700 dark:text-gray-300">Blur</label>
                         <input type="number" min={0} max={50} value={selectedOverlay.style.shadow?.blur || 0} onChange={e => handleShadowChange(selectedOverlay.id, { ...selectedOverlay.style.shadow, blur: Number(e.target.value), color: selectedOverlay.style.shadow?.color || '#000000', offsetX: selectedOverlay.style.shadow?.offsetX || 0, offsetY: selectedOverlay.style.shadow?.offsetY || 0 })} className="w-full border rounded px-1 py-0.5 text-xs" placeholder="Blur" />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-xs font-medium mb-0.5 text-blue-700 dark:text-blue-300">X</label>
+                        <label className="block text-xs font-medium mb-0.5 text-gray-700 dark:text-gray-300">X</label>
                         <input type="number" min={-50} max={50} value={selectedOverlay.style.shadow?.offsetX || 0} onChange={e => handleShadowChange(selectedOverlay.id, { ...selectedOverlay.style.shadow, offsetX: Number(e.target.value), color: selectedOverlay.style.shadow?.color || '#000000', blur: selectedOverlay.style.shadow?.blur || 0, offsetY: selectedOverlay.style.shadow?.offsetY || 0 })} className="w-full border rounded px-1 py-0.5 text-xs" placeholder="X" />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-xs font-medium mb-0.5 text-blue-700 dark:text-blue-300">Y</label>
+                        <label className="block text-xs font-medium mb-0.5 text-gray-700 dark:text-gray-300">Y</label>
                         <input type="number" min={-50} max={50} value={selectedOverlay.style.shadow?.offsetY || 0} onChange={e => handleShadowChange(selectedOverlay.id, { ...selectedOverlay.style.shadow, offsetY: Number(e.target.value), color: selectedOverlay.style.shadow?.color || '#000000', blur: selectedOverlay.style.shadow?.blur || 0, offsetX: selectedOverlay.style.shadow?.offsetX || 0 })} className="w-full border rounded px-1 py-0.5 text-xs" placeholder="Y" />
                       </div>
                     </div>
-                    <div className="border-t border-blue-100 dark:border-blue-900 my-0.5" />
+                    <div className="border-t border-gray-200 dark:border-gray-700 my-0.5" />
                     {/* Rotation */}
                     <div>
-                      <label className="block text-xs font-medium mb-0.5 text-blue-700 dark:text-blue-300">Rotation: {selectedOverlay.style.rotation}°</label>
+                      <label className="block text-xs font-medium mb-0.5 text-gray-700 dark:text-gray-300">Rotation: {selectedOverlay.style.rotation}°</label>
                       <input
                         type="range"
                         min={-180}
                         max={180}
                         value={selectedOverlay.style.rotation}
                         onChange={e => handleRotationChange(selectedOverlay.id, Number(e.target.value))}
-                        className="w-full accent-blue-500"
+                        className="w-full accent-black dark:accent-gray-400"
                       />
                     </div>
                     <div className="w-full flex justify-center mt-1">
@@ -681,28 +682,64 @@ const handleTextAlignChange = (
               </div>
             </div>
           ) : loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex flex-col items-center space-y-4">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <p className="text-gray-600 dark:text-gray-400">Loading images...</p>
+            <div className="flex items-center justify-center py-20">
+              <div className="relative">
+                {/* Animated background circle */}
+                <div className="absolute inset-0 bg-gray-400 dark:bg-gray-700 rounded-full blur-2xl opacity-10 animate-pulse"></div>
+                <div className="relative flex flex-col items-center space-y-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl p-12 border-2 border-gray-200 dark:border-gray-700 shadow-2xl">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-black dark:bg-gray-600 rounded-full blur-md opacity-20"></div>
+                    <div className="relative animate-spin rounded-full h-16 w-16 border-4 border-gray-200 dark:border-gray-700 border-t-black dark:border-t-gray-400 border-r-gray-600 dark:border-r-gray-500"></div>
+                  </div>
+                  <div className="text-center space-y-2">
+                    <p className="text-lg font-semibold text-black dark:text-white">
+                      Loading images...
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Please wait a moment
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           ) : images.length === 0 ? (
-            <Card className="text-center py-12">
-              <CardContent>
-                <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  No images yet
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  Upload your first image to get started.
-                </p>
-                <Button onClick={() => setShowUploader(true)}>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Image
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="relative">
+              {/* Decorative background elements */}
+              <div className="absolute -top-10 -left-10 w-72 h-72 bg-gray-300 dark:bg-gray-800 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+              <div className="absolute -bottom-10 -right-10 w-72 h-72 bg-gray-400 dark:bg-gray-700 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+              
+              <Card className="relative text-center py-16 px-8 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-3xl shadow-2xl backdrop-blur-sm overflow-hidden">
+                {/* Decorative border gradient */}
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-gray-100/50 via-gray-50/50 to-gray-100/50 dark:from-gray-700/20 dark:via-gray-800/20 dark:to-gray-700/20 pointer-events-none"></div>
+                
+                <CardContent className="relative z-10">
+                  <div className="relative inline-block mb-6">
+                    <div className="absolute inset-0 bg-black dark:bg-gray-600 rounded-2xl blur-2xl opacity-10 dark:opacity-20"></div>
+                    <div className="relative bg-gray-50 dark:bg-gray-800/60 p-8 rounded-3xl border-2 border-gray-200 dark:border-gray-700 shadow-xl">
+                      <ImageIcon className="h-20 w-20 mx-auto text-black dark:text-gray-300 drop-shadow-lg" strokeWidth={2} />
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-2xl sm:text-3xl font-extrabold mb-3 text-black dark:text-white">
+                    No images yet
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-8 text-lg max-w-md mx-auto">
+                    Get started by uploading your first image and transform it with beautiful text overlays.
+                  </p>
+                  
+                  <Button 
+                    onClick={() => setShowUploader(true)}
+                    className="bg-black dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white font-semibold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 text-lg border border-gray-200 dark:border-gray-700"
+                  >
+                    <Upload className="h-5 w-5 mr-2" />
+                    Upload Image
+                  </Button>
+                  
+                  {/* Feature highlights */}
+                  
+                </CardContent>
+              </Card>
+            </div>
           ) : (
             <ImageGallery
               images={images}

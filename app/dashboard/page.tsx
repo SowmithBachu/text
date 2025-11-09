@@ -62,23 +62,52 @@ export default function DashboardPage() {
     }
   }, [isLoaded, user]);
 
-  // Run segmentation when previewImage changes
+  // Run segmentation when previewImage changes (non-blocking, runs in background)
   useEffect(() => {
     if (!previewImage) return;
-    const img = new window.Image();
-    img.crossOrigin = 'anonymous';
-    img.src = previewImage.originalUrl;
-    img.onload = async () => {
-      const net = await bodyPix.load();
-      const segmentation = await net.segmentPerson(img, { internalResolution: 'medium' });
-      // Create a mask image
-      const mask = bodyPix.toMask(segmentation);
-      const maskCanvas = document.createElement('canvas');
-      maskCanvas.width = img.width;
-      maskCanvas.height = img.height;
-      const ctx = maskCanvas.getContext('2d');
-      if (ctx) ctx.putImageData(mask, 0, 0);
-      setSegmentation(ctx ? ctx.getImageData(0, 0, img.width, img.height) : null);
+    let cancelled = false;
+    
+    const runSegmentation = async () => {
+      try {
+        const img = new window.Image();
+        img.crossOrigin = 'anonymous';
+        img.src = previewImage.originalUrl;
+        
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+        
+        if (cancelled) return;
+        
+        const net = await bodyPix.load();
+        if (cancelled) return;
+        
+        const segmentation = await net.segmentPerson(img, { internalResolution: 'medium' });
+        if (cancelled) return;
+        
+        // Create a mask image
+        const mask = bodyPix.toMask(segmentation);
+        const maskCanvas = document.createElement('canvas');
+        maskCanvas.width = img.width;
+        maskCanvas.height = img.height;
+        const ctx = maskCanvas.getContext('2d');
+        if (ctx) {
+          ctx.putImageData(mask, 0, 0);
+          if (!cancelled) {
+            setSegmentation(ctx.getImageData(0, 0, img.width, img.height));
+          }
+        }
+      } catch (error) {
+        console.warn('Segmentation failed or was cancelled:', error);
+        // Don't set segmentation on error - editor will work without it
+      }
+    };
+    
+    runSegmentation();
+    
+    return () => {
+      cancelled = true;
     };
   }, [previewImage]);
 
@@ -86,10 +115,22 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!previewImage) return;
     const img = new window.Image();
+    img.crossOrigin = 'anonymous';
     img.src = previewImage.originalUrl;
     img.onload = () => {
-      let w = img.width;
-      let h = img.height;
+      let w = img.naturalWidth || img.width || previewImage.width || 400;
+      let h = img.naturalHeight || img.height || previewImage.height || 400;
+      const maxW = 700;
+      const maxH = 500;
+      const ratio = Math.min(maxW / w, maxH / h, 1);
+      setCanvasDims({ width: Math.round(w * ratio), height: Math.round(h * ratio) });
+      setImageProcessing(false);
+    };
+    img.onerror = () => {
+      console.error('Failed to load image:', previewImage.originalUrl);
+      // Use fallback dimensions from previewImage data if available
+      const w = previewImage.width || 400;
+      const h = previewImage.height || 400;
       const maxW = 700;
       const maxH = 500;
       const ratio = Math.min(maxW / w, maxH / h, 1);
@@ -98,68 +139,117 @@ export default function DashboardPage() {
     };
   }, [previewImage]);
 
-  // Draw composited image (full image, then text masked by person/object)
+  // Draw composited image (full image, then text overlays)
+  // Works immediately without waiting for segmentation
   useEffect(() => {
-    if (!previewImage || !segmentation || !canvasRef.current) return;
+    if (!previewImage || !canvasRef.current) return;
     const img = new window.Image();
     img.crossOrigin = 'anonymous';
     img.src = previewImage.originalUrl;
     img.onload = () => {
       const canvas = canvasRef.current!;
-      canvas.width = img.width;
-      canvas.height = img.height;
+      // Use natural dimensions for canvas (actual image size)
+      const imgWidth = img.naturalWidth || img.width;
+      const imgHeight = img.naturalHeight || img.height;
+      canvas.width = imgWidth;
+      canvas.height = imgHeight;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
       // 1. Draw the full image
-      ctx.drawImage(img, 0, 0);
-      // 2. Draw text overlays, but mask out the person/object area (so text is only on background)
-      const textCanvas = document.createElement('canvas');
-      textCanvas.width = img.width;
-      textCanvas.height = img.height;
-      const textCtx = textCanvas.getContext('2d');
-      if (textCtx) {
-        textOverlays.forEach(overlay => {
-          textCtx.save();
-          textCtx.font = `${overlay.style.fontWeight} ${overlay.style.fontSize}px ${overlay.style.fontFamily}`;
-          textCtx.fillStyle = overlay.style.color;
-          textCtx.globalAlpha = overlay.style.opacity;
-          const validTextAligns = ['left', 'right', 'center', 'start', 'end'] as const;
-const isValidAlign = validTextAligns.includes(overlay.style.textAlign as typeof validTextAligns[number]);
-textCtx.textAlign = isValidAlign ? overlay.style.textAlign as CanvasTextAlign : 'center';
-
-          textCtx.textBaseline = 'middle';
-          if (overlay.style.shadow) {
-            textCtx.shadowColor = overlay.style.shadow.color || '#000000';
-            textCtx.shadowBlur = overlay.style.shadow.blur || 0;
-            textCtx.shadowOffsetX = overlay.style.shadow.offsetX || 0;
-            textCtx.shadowOffsetY = overlay.style.shadow.offsetY || 0;
-          } else {
-            textCtx.shadowColor = 'transparent';
-            textCtx.shadowBlur = 0;
-            textCtx.shadowOffsetX = 0;
-            textCtx.shadowOffsetY = 0;
+      ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+      
+      // 2. Draw text overlays
+      if (textOverlays.length > 0) {
+        // If we have segmentation, use masking; otherwise draw text directly
+        if (segmentation) {
+          // Draw text with segmentation masking (text only on background)
+          const textCanvas = document.createElement('canvas');
+          textCanvas.width = imgWidth;
+          textCanvas.height = imgHeight;
+          const textCtx = textCanvas.getContext('2d');
+          if (textCtx) {
+            textOverlays.forEach(overlay => {
+              textCtx.save();
+              textCtx.font = `${overlay.style.fontWeight} ${overlay.style.fontSize}px ${overlay.style.fontFamily}`;
+              textCtx.fillStyle = overlay.style.color;
+              textCtx.globalAlpha = overlay.style.opacity;
+              const validTextAligns = ['left', 'right', 'center', 'start', 'end'] as const;
+              const isValidAlign = validTextAligns.includes(overlay.style.textAlign as typeof validTextAligns[number]);
+              textCtx.textAlign = isValidAlign ? overlay.style.textAlign as CanvasTextAlign : 'center';
+              textCtx.textBaseline = 'middle';
+              
+              if (overlay.style.shadow) {
+                textCtx.shadowColor = overlay.style.shadow.color || '#000000';
+                textCtx.shadowBlur = overlay.style.shadow.blur || 0;
+                textCtx.shadowOffsetX = overlay.style.shadow.offsetX || 0;
+                textCtx.shadowOffsetY = overlay.style.shadow.offsetY || 0;
+              } else {
+                textCtx.shadowColor = 'transparent';
+                textCtx.shadowBlur = 0;
+                textCtx.shadowOffsetX = 0;
+                textCtx.shadowOffsetY = 0;
+              }
+              if (overlay.style.stroke && overlay.style.stroke.width > 0) {
+                textCtx.lineWidth = overlay.style.stroke.width;
+                textCtx.strokeStyle = overlay.style.stroke.color || '#000000';
+              }
+              textCtx.translate(overlay.position.x, overlay.position.y);
+              textCtx.rotate((overlay.style.rotation * Math.PI) / 180);
+              textCtx.fillText(overlay.text, 0, 0);
+              textCtx.restore();
+            });
+            
+            // Apply segmentation mask to text canvas
+            const maskData = segmentation.data;
+            const textImageData = textCtx.getImageData(0, 0, imgWidth, imgHeight);
+            for (let i = 0; i < maskData.length; i += 4) {
+              if (maskData[i + 3] === 0) { // If mask alpha == 0, it's background
+                textImageData.data[i + 3] = 0; // Make text transparent where background is
+              }
+            }
+            textCtx.putImageData(textImageData, 0, 0);
+            ctx.drawImage(textCanvas, 0, 0);
           }
-          if (overlay.style.stroke && overlay.style.stroke.width > 0) {
-            textCtx.lineWidth = overlay.style.stroke.width;
-            textCtx.strokeStyle = overlay.style.stroke.color || '#000000';
-          }
-          textCtx.translate(overlay.position.x, overlay.position.y);
-          textCtx.rotate((overlay.style.rotation * Math.PI) / 180);
-          textCtx.fillText(overlay.text, 0, 0);
-          textCtx.restore();
-        });
-        // Mask out the person/object from the text canvas
-        const maskData = segmentation.data;
-        const textImageData = textCtx.getImageData(0, 0, img.width, img.height);
-        for (let i = 0; i < maskData.length; i += 4) {
-          if (maskData[i + 3] === 0) { // If mask alpha == 0, it's background
-            textImageData.data[i + 3] = 0; // Make text transparent where background is
-          }
+        } else {
+          // Draw text directly without masking (segmentation not ready yet)
+          textOverlays.forEach(overlay => {
+            ctx.save();
+            ctx.font = `${overlay.style.fontWeight} ${overlay.style.fontSize}px ${overlay.style.fontFamily}`;
+            ctx.fillStyle = overlay.style.color;
+            ctx.globalAlpha = overlay.style.opacity;
+            const validTextAligns = ['left', 'right', 'center', 'start', 'end'] as const;
+            const isValidAlign = validTextAligns.includes(overlay.style.textAlign as typeof validTextAligns[number]);
+            ctx.textAlign = isValidAlign ? overlay.style.textAlign as CanvasTextAlign : 'center';
+            ctx.textBaseline = 'middle';
+            
+            if (overlay.style.shadow) {
+              ctx.shadowColor = overlay.style.shadow.color || '#000000';
+              ctx.shadowBlur = overlay.style.shadow.blur || 0;
+              ctx.shadowOffsetX = overlay.style.shadow.offsetX || 0;
+              ctx.shadowOffsetY = overlay.style.shadow.offsetY || 0;
+            } else {
+              ctx.shadowColor = 'transparent';
+              ctx.shadowBlur = 0;
+              ctx.shadowOffsetX = 0;
+              ctx.shadowOffsetY = 0;
+            }
+            if (overlay.style.stroke && overlay.style.stroke.width > 0) {
+              ctx.lineWidth = overlay.style.stroke.width;
+              ctx.strokeStyle = overlay.style.stroke.color || '#000000';
+            }
+            ctx.translate(overlay.position.x, overlay.position.y);
+            ctx.rotate((overlay.style.rotation * Math.PI) / 180);
+            ctx.fillText(overlay.text, 0, 0);
+            ctx.restore();
+          });
         }
-        textCtx.putImageData(textImageData, 0, 0);
-        ctx.drawImage(textCanvas, 0, 0);
       }
+    };
+    img.onerror = (error) => {
+      console.error('Failed to load image:', previewImage.originalUrl, error);
+      setImageProcessing(false);
     };
   }, [previewImage, segmentation, textOverlays]);
 

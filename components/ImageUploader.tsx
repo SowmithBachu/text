@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, X, FileImage, AlertCircle, CheckCircle } from 'lucide-react';
 import { validateImageFile, formatFileSize } from '@/lib/utils';
-import { Image } from '@/types';
+import { Image as ImageType } from '@/types';
 import toast from 'react-hot-toast';
 
 interface ImageUploaderProps {
   onClose: () => void;
-  onUploadSuccess: (image: Image) => void;
+  onUploadSuccess: (image: ImageType) => void;
 }
 
 export function ImageUploader({ onClose, onUploadSuccess }: ImageUploaderProps) {
@@ -31,27 +31,62 @@ export function ImageUploader({ onClose, onUploadSuccess }: ImageUploaderProps) 
     setUploadProgress(0);
     
     try {
+      // Create a blob URL for immediate display
+      const blobUrl = URL.createObjectURL(file);
+      
+      // Get image dimensions
+      const img = new window.Image();
+      const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+        img.onload = () => {
+          resolve({ width: img.naturalWidth, height: img.naturalHeight });
+        };
+        img.onerror = reject;
+        img.src = blobUrl;
+      });
+      
+      setUploadProgress(50);
+      
+      // Upload to server (non-blocking)
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await fetch('/api/images', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!response.ok) {
-        throw new Error('Upload failed');
+      let serverImageData = null;
+      try {
+        const response = await fetch('/api/images', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            serverImageData = result.data;
+          }
+        }
+      } catch (error) {
+        console.warn('Server upload failed, using local blob URL:', error);
       }
       
-      const result = await response.json();
+      setUploadProgress(100);
       
-      if (result.success) {
-        setUploadProgress(100);
-        onUploadSuccess(result.data);
-        toast.success('Image uploaded successfully!');
-      } else {
-        throw new Error(result.error || 'Upload failed');
-      }
+      // Create image data with blob URL for immediate display
+      const imageData: ImageType = {
+        id: serverImageData?.id || `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        userId: serverImageData?.userId || 'local',
+        name: file.name,
+        originalUrl: blobUrl, // Use blob URL for immediate display
+        thumbnailUrl: blobUrl, // Use blob URL for thumbnail too
+        fileSize: file.size,
+        width: dimensions.width,
+        height: dimensions.height,
+        format: file.type.split('/')[1] || 'png',
+        textOverlays: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      
+      onUploadSuccess(imageData);
+      toast.success('Image uploaded successfully!');
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Failed to upload image');

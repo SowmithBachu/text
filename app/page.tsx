@@ -4,10 +4,9 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ImageIcon, Youtube, Instagram, Twitter, Facebook, Type, Wand2 } from 'lucide-react';
 import ThemeToggle from '@/components/layout/ThemeToggle';
-import { useEffect, useRef } from 'react';
 
 const FeatureCard = ({ icon, title, children }: { icon: React.ReactNode, title: string, children: React.ReactNode }) => (
-  <div className="bg-white/40 dark:bg-gray-800/40 p-6 rounded-2xl border border-white/50 dark:border-gray-700/50 shadow-lg backdrop-blur-lg transition-all duration-300 hover:shadow-xl hover:border-white">
+  <div className="bg-white/60 dark:bg-gray-800/60 p-6 rounded-2xl border border-white/20 dark:border-gray-700 transition-colors duration-300 hover:bg-white/70 hover:dark:bg-gray-800/70">
     <div className="flex items-center space-x-4 mb-4">
       <div className="p-2 bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg text-white">
         {icon}
@@ -19,32 +18,9 @@ const FeatureCard = ({ icon, title, children }: { icon: React.ReactNode, title: 
 );
 
 export default function HomePage() {
-  const heroRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!heroRef.current) return;
-      const { clientX, clientY } = e;
-      const { offsetWidth, offsetHeight } = heroRef.current;
-      const x = (clientX - offsetWidth / 2) / (offsetWidth / 2);
-      const y = (clientY - offsetHeight / 2) / (offsetHeight / 2);
-      heroRef.current.style.transform = `perspective(1000px) rotateY(${x * 5}deg) rotateX(${-y * 5}deg) scale3d(1, 1, 1)`;
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, []);
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900 text-gray-800 dark:text-gray-200">
-      {/* Background Shapes */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-red-400 rounded-full mix-blend-multiply filter blur-2xl opacity-30 animate-blob"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-orange-400 rounded-full mix-blend-multiply filter blur-2xl opacity-30 animate-blob animation-delay-2000"></div>
-         <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-rose-400 rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob animation-delay-4000"></div>
-      </div>
+    <div className="relative min-h-screen w-full overflow-x-hidden bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
 
       {/* Header */}
       <header className="relative z-50 w-full">
@@ -52,7 +28,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between h-20 border-b border-white/20 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl shadow-lg rounded-b-2xl">
             <div className="flex items-center space-x-3 px-4">
               <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-red-600 to-orange-500 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-gray-700 to-black rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
                 <div className="relative p-2 bg-white/80 dark:bg-black/80 rounded-lg leading-none flex items-center">
                   <ImageIcon className="h-6 w-6 text-black dark:text-white" />
                 </div>
@@ -69,11 +45,7 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section
-        ref={heroRef}
-        className="relative py-20 sm:py-32 transition-transform duration-300 ease-out"
-        style={{ willChange: 'transform' }}
-      >
+      <section className="relative py-20 sm:py-32">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative z-10 text-center">
              <h1 className="text-2xl sm:text-4xl font-extrabold mb-6 drop-shadow-sm">

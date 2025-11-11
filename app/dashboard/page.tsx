@@ -37,6 +37,7 @@ const FONT_WEIGHTS: FontWeight[] = [
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
+  const [mounted, setMounted] = useState(false);
   const [images, setImages] = useState<Image[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUploader, setShowUploader] = useState(false);
@@ -54,6 +55,11 @@ export default function DashboardPage() {
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<{x: number, y: number} | null>(null);
+
+  // Track if component has mounted on client to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Fetch images when component mounts and user is available
   useEffect(() => {
@@ -253,8 +259,8 @@ export default function DashboardPage() {
     };
   }, [previewImage, segmentation, textOverlays]);
 
-  // Show loading state while Clerk is loading
-  if (!isLoaded) {
+  // Show loading state while component is mounting or Clerk is loading
+  if (!mounted || !isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">

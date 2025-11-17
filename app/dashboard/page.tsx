@@ -35,6 +35,25 @@ const FONT_WEIGHTS: FontWeight[] = [
   '600', '700', '800', '900',
 ];
 
+const WATERMARK_TEXT = 'textoverlayed';
+const drawWatermark = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number
+) => {
+  const fontSize = Math.round(Math.min(width, height) / 4);
+  ctx.save();
+  ctx.globalAlpha = 0.14;
+  ctx.fillStyle = '#111111';
+  ctx.font = `700 ${fontSize}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.translate(width / 2, height / 2);
+  ctx.rotate((-30 * Math.PI) / 180);
+  ctx.fillText(WATERMARK_TEXT, 0, 0);
+  ctx.restore();
+};
+
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
   const [mounted, setMounted] = useState(false);
@@ -61,12 +80,36 @@ export default function DashboardPage() {
     setMounted(true);
   }, []);
 
+  const fetchImages = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/images');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setImages(data.data);
+      } else {
+        toast.error('Failed to load images');
+      }
+    } catch (error) {
+      console.error('Error fetching images:', error);
+      toast.error('Failed to load images');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Fetch images when component mounts and user is available
   useEffect(() => {
     if (isLoaded && user) {
       fetchImages();
     }
-  }, [isLoaded, user]);
+  }, [isLoaded, user, fetchImages]);
 
   // Run segmentation when previewImage changes (non-blocking, runs in background)
   useEffect(() => {
@@ -165,8 +208,10 @@ export default function DashboardPage() {
       
       // 1. Draw the full image
       ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-      
-      // 2. Draw text overlays
+      // 2. Draw watermark behind overlays
+      drawWatermark(ctx, imgWidth, imgHeight);
+
+      // 3. Draw text overlays
       if (textOverlays.length > 0) {
         // If we have segmentation, use masking; otherwise draw text directly
         if (segmentation) {
@@ -258,56 +303,6 @@ export default function DashboardPage() {
       setImageProcessing(false);
     };
   }, [previewImage, segmentation, textOverlays]);
-
-  // Show loading state while component is mounting or Clerk is loading
-  if (!mounted || !isLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black dark:border-gray-400 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show sign-in prompt if not authenticated
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-400 mb-4">Please sign in to access the dashboard</p>
-          <a href="/signin">
-            <Button>Sign In</Button>
-          </a>
-        </div>
-      </div>
-    );
-  }
-
-  const fetchImages = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/images');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setImages(data.data);
-      } else {
-        toast.error('Failed to load images');
-      }
-    } catch (error) {
-      console.error('Error fetching images:', error);
-      toast.error('Failed to load images');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   const handleImageSelect = useCallback((image: Image) => {
     setSelectedImage(image);
@@ -510,6 +505,32 @@ const handleTextAlignChange = (
     link.href = canvasRef.current.toDataURL('image/png');
     link.click();
   };
+
+  // Show loading state while component is mounting or Clerk is loading
+  if (!mounted || !isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black dark:border-gray-400 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show sign-in prompt if not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Please sign in to access the dashboard</p>
+          <a href="/signin">
+            <Button>Sign In</Button>
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">

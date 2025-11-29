@@ -208,9 +208,8 @@ export default function DashboardPage() {
       
       // 1. Draw the full image
       ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-      // 2. Draw watermark behind overlays
-      drawWatermark(ctx, imgWidth, imgHeight);
-
+      // 2. Watermark removed
+      
       // 3. Draw text overlays
       if (textOverlays.length > 0) {
         // If we have segmentation, use masking; otherwise draw text directly

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ImageIcon, Youtube, Instagram, Twitter, Facebook, Type, Wand2 } from 'lucide-react';
 import ThemeToggle from '@/components/layout/ThemeToggle';
+import Carousel3D from '@/components/Carousel3D';
 
 const FeatureCard = ({ icon, title, children }: { icon: React.ReactNode, title: string, children: React.ReactNode }) => (
   <div className="bg-white/60 dark:bg-gray-800/60 p-6 rounded-2xl border border-white/20 dark:border-gray-700 transition-colors duration-300 hover:bg-white/70 hover:dark:bg-gray-800/70">
@@ -47,7 +48,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative py-20 sm:py-32">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative z-10 text-center">
+          <div className="relative z-10 text-center mb-12">
              <h1 className="text-2xl sm:text-4xl font-extrabold mb-6 drop-shadow-sm">
               <span className="bg-gradient-to-b from-gray-800 to-black dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
                 Create Stunning{" "}
@@ -65,13 +66,16 @@ export default function HomePage() {
                 {" "}in Seconds.
               </span>
             </h1>
-            <div className="flex justify-center">
+            <div className="flex justify-center mb-12">
               <Link href="/signin">
                 <Button size="lg" className="text-lg px-10 py-4 bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 text-white border-0 shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm rounded-xl">
                   Get Started
                 </Button>
               </Link>
             </div>
+          </div>
+          <div className="relative z-10 flex justify-center items-center min-h-[500px]">
+            <Carousel3D />
           </div>
         </div>
       </section>

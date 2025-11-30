@@ -18,14 +18,11 @@ const Carousel3D = () => {
     'https://iili.io/HTjH72V.jpg',
     'https://iili.io/HTjHCk7.jpg',
     'https://iili.io/HTjH3Bf.jpg',
-    '/edited-image-6.png', // Make sure this file exists in the public folder
+    '/edited-image-6.png', // Local image from public folder
     'https://iili.io/HTjHRrQ.jpg',
     'https://iili.io/HTjHAEx.jpg',
     'https://images.pexels.com/photos/139829/pexels-photo-139829.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500',
   ];
-
-  const videoSrc = "https://player.vimeo.com/external/322244668.sd.mp4?s=338c48ac2dfcb1d4c0689968b5baf94eee6ca0c1&profile_id=165&oauth2_token_id=57447761";
-
   useEffect(() => {
     if (!spinContainer.current) return;
 
